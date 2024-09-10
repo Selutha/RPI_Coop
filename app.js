@@ -10,12 +10,12 @@ const fs = require('fs')
 const configFile = './configSettings.json'
 const objConfig = require('./configSettings.json')
 // Enable, output, initially high so all gpio are OFF when starting this app
-const gpioHeat = new Gpio(17, 'high')
-const gpioExhaust = new Gpio(27, 'high')
-const gpioLight = new Gpio(22, 'high')
-const gpioDoor = new Gpio(23, 'high')
+const gpioHeat = new Gpio(529, 'high')
+const gpioExhaust = new Gpio(539, 'high')
+const gpioLight = new Gpio(534, 'high')
+const gpioDoor = new Gpio(535, 'high')
 // set to be on when gpio input circuit is closed (i.e photocell relay is closed)
-const gpioPhoto = new Gpio(25, 'in', 'both', { debounceTimeout: 10, activeLow: true })
+const gpioPhoto = new Gpio(537, 'in', 'both', { debounceTimeout: 10, activeLow: true })
 const off = 1
 const on = 0
 // These variables are modified in various functions
