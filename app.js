@@ -366,7 +366,7 @@ svr.ready().then(() => {
 })
 
 // Run the server!
-svr.listen({ port: 3000, host: '10.10.1.107' }, (err, address) => {
+svr.listen({ port: 3000, host: '0.0.0.0' }, (err, address) => {
   if (err) { console.log(err); throw err }
   console.log(`Server is now listening on ${address}`)
 })
