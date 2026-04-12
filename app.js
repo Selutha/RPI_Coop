@@ -10,14 +10,32 @@ const fs = require('fs')
 const configFile = './configSettings.json'
 const objConfig = require('./configSettings.json')
 // Enable, output, initially high so all gpio are OFF when starting this app
-const gpioHeat = new Gpio(529, 'high')
-const gpioExhaust = new Gpio(539, 'high')
-const gpioLight = new Gpio(534, 'high')
-const gpioDoor = new Gpio(535, 'high')
+const gpioHeat = new Gpio(529, 'low')
+const gpioExhaust = new Gpio(539, 'low')
+const gpioLight = new Gpio(534, 'low')
+const gpioDoor = new Gpio(535, 'low')
+
+// gpio for the chicken coop door 518 and 525
+// open is 518 high and 525 low
+// close is 518 low and 525 high
+// lets set this to be closed by default
+const gpioCoopDoor1 = new Gpio(518, 'low')
+const gpioCoopDoor2 = new Gpio(525, 'high')
+
+// gpio for the chicken run is 531 and 538
+// To open the chicken run door both pins must be set, 531 high and 538 low
+// To close the chicken run door both pins must be set, 531 is low while 538 is high
+// lets set this to be closed by default
+const gpioRunDoor1 = new Gpio(531, 'low')
+const gpioRunDoor2 = new Gpio(538, 'high')
+
+
+
+
 // set to be on when gpio input circuit is closed (i.e photocell relay is closed)
-const gpioPhoto = new Gpio(537, 'in', 'both', { debounceTimeout: 10, activeLow: true })
-const off = 1
-const on = 0
+const gpioPhoto = new Gpio(537, 'in', 'both', { debounceTimeout: 10, activeLow: false })
+const off = 0
+const on = 1
 // These variables are modified in various functions
 let clientCnt = 0
 let current24hTime
@@ -26,6 +44,7 @@ let msPhotocellStartTime
 let msPhotocellEndTime
 
 // Functions
+
 const currentTime = () => {
   // Get the current time and format to hh:mm
   const currentDateTime = new Date(Date.now())
@@ -61,6 +80,27 @@ function gpioStatus (gpioItem, gpioType) {
   }
 }
 
+// This function will open the run door
+function openDoor (gpioMotorPin1, gpioMotorPin2) {
+  gpioMotorPin1.writeSync(on)
+  gpioMotorPin2.writeSync(off)
+}
+
+// this function will close the run door
+function closeDoor (gpioMotorPin1, gpioMotorPin2) {
+  gpioMotorPin1.writeSync(off)
+  gpioMotorPin2.writeSync(on)
+}
+
+// Get the current state of the coop or the run door by reading the output of both pins
+function getDoorState (gpio1, gpio2) {
+  if (gpio1.readSync() === on && gpio2.readSync() === off) {
+    return 'OPEN'
+  } else {
+    return 'CLOSED'
+  }
+}
+
 function getPhotocellEndTime () {
   let hours = 0
   switch (objConfig._lightDurationIdx) {
@@ -90,7 +130,8 @@ function refreshPageData () {
     // Monitor the gpio status
     objConfig._heatRelayTxt = gpioStatus(gpioHeat, 'OnOff')
     objConfig._exhaustRelayTxt = gpioStatus(gpioExhaust, 'OnOff')
-    objConfig._doorRelayTxt = gpioStatus(gpioDoor, 'OpenClose')
+    objConfig._coopDoorRelayTxt = getDoorState(gpioCoopDoor1, gpioCoopDoor2)
+    objConfig._runDoorRelayTxt = getDoorState(gpioRunDoor1, gpioRunDoor2)
     objConfig._lightRelayTxt = gpioStatus(gpioLight, 'OnOff')
     objConfig._photocellTxt = gpioStatus(gpioPhoto, 'OnOff')
     // push the data to the html page
@@ -164,52 +205,103 @@ async function exhaustController () {
   // console.log(`EXHAUST -- DegF: ${objConfig._degF} -- SetPnt: ${objConfig._exhaustSetPnt} -- Mode: ${objConfig._exhaustMode} -- Relay: ${objConfig._exhaustRelayTxt} -- Gpio: ${gpioExhaust.readSync()}`)
 }
 
-async function doorController () {
+async function coopDoorController () {
   // Only run if mode = Auto
-  if (objConfig._doorMode === 'Auto') {
+  const currentDoorState = getDoorState(gpioCoopDoor1, gpioCoopDoor2);
+
+  if (objConfig._coopDoorMode === 'Auto') {
     current24hTime = currentTime()
 
     // Check if photo relay is on
     if (gpioPhoto.readSync() === on) {
-      if (current24hTime >= objConfig._doorDelayTime) {
+      if (current24hTime >= objConfig._coopDoorDelayTime) {
         // Now we can open the door
         // If relay is off lets turn it on
-        if (gpioDoor.readSync() === off) {
-          gpioDoor.writeSync(on) // Turn relay on
+        if (currentDoorState === 'CLOSED') {
+          openDoor(gpioCoopDoor1, gpioCoopDoor2)
           // console.log(`Open Door - ${current24hTime} is >= to ${doorDelayTime}`)
         }
-        objConfig._doorRelayTxt = 'OPEN'
+        objConfig._coopDoorRelayTxt = 'OPEN'
       } else {
         // Photocell is off. Now we can close the door
         // If relay is on lets turn it off
-        if (gpioDoor.readSync() === on) {
-          gpioDoor.writeSync(off) // Turn relay off
-          // console.log('Close Door')
+        if (currentDoorState === 'OPEN') {
+          closeDoor(gpioCoopDoor1, gpioCoopDoor2)
+          // console.log(`Close Door - ${current24hTime} is < to ${doorDelayTime}`)
         }
-        objConfig._doorRelayTxt = 'CLOSED'
+        objConfig._coopDoorRelayTxt = 'CLOSED'
       }
     } else {
       // Photocell is off. Now we can close the door
       // If relay is on lets turn it off
-      if (gpioDoor.readSync() === on) {
-        gpioDoor.writeSync(off) // Turn relay off
-        // console.log('Close Door')
+      if (currentDoorState === 'OPEN') {
+        closeDoor(gpioCoopDoor1, gpioCoopDoor2)
+        // console.log(`Close Door - Photocell is off`)
       }
-      objConfig._doorRelayTxt = 'CLOSED'
+      objConfig._coopDoorRelayTxt = 'CLOSED'
     }
   } else {
-    if (objConfig._doorRelayTxt === 'OPEN') {
-      if (gpioDoor.readSync() === off) {
-        gpioDoor.writeSync(on) // Turn relay on
+    if (objConfig._coopDoorRelayTxt === 'OPEN') {
+      if (getDoorState(gpioCoopDoor1, gpioCoopDoor2) === 'CLOSED') {
+        openDoor(gpioCoopDoor1, gpioCoopDoor2)
       }
     } else {
-      if (gpioDoor.readSync() === on) {
-        gpioDoor.writeSync(off) // Turn relay off
+      if (getDoorState(gpioCoopDoor1, gpioCoopDoor2) === 'OPEN') {
+        closeDoor(gpioCoopDoor1, gpioCoopDoor2)     
+      }
+    }
+  }
+}
+
+async function runDoorController () {
+  // Only run if mode = Auto
+  const currentDoorState = getDoorState(gpioRunDoor1, gpioRunDoor2);
+
+  if (objConfig._runDoorMode === 'Auto') {
+    current24hTime = currentTime()
+
+    // Check if photo relay is on
+    if (gpioPhoto.readSync() === on) {
+      if (current24hTime >= objConfig._runDoorDelayTime) {
+        // Now we can open the door
+        // If relay is off lets turn it on
+        if (currentDoorState === 'CLOSED') {
+          openDoor(gpioRunDoor1, gpioRunDoor2)
+          // console.log(`Open Door - ${current24hTime} is >= to ${doorDelayTime}`)
+        }
+        objConfig._runDoorRelayTxt = 'OPEN'
+      } else {
+        // Photocell is off. Now we can close the door
+        // If relay is on lets turn it off
+        if (currentDoorState === 'OPEN') {
+          closeDoor(gpioRunDoor1, gpioRunDoor2)
+          // console.log(`Close Door - ${current24hTime} is < to ${doorDelayTime}`)
+        }
+        objConfig._runDoorRelayTxt = 'CLOSED'
+      }
+    } else {
+      // Photocell is off. Now we can close the door
+      // If relay is on lets turn it off
+      if (currentDoorState === 'OPEN') {
+        closeDoor(gpioRunDoor1, gpioRunDoor2)
+        // console.log(`Close Door - Photocell is off`)
+      }
+      objConfig._runDoorRelayTxt = 'CLOSED'
+    }
+  } else {
+    if (objConfig._runDoorRelayTxt === 'OPEN') {
+      if (getDoorState(gpioRunDoor1, gpioRunDoor2) === 'CLOSED') {
+        openDoor(gpioRunDoor1, gpioRunDoor2)
+      }
+    } else {
+      if (getDoorState(gpioRunDoor1, gpioRunDoor2) === 'OPEN') {
+        closeDoor(gpioRunDoor1, gpioRunDoor2)     
       }
     }
   }
   // console.log(`DOOR -- Photocell: ${objConfig._PhotocellTxt} -- Del Time: ${objConfig._doorDelayTime} -- Cur Time: ${objConfig._svrTime} -- Door is: ${objConfig._doorRelayTxt} -- Gpio: ${gpioDoor.readSync()}`)
 }
+
 async function lightController () {
   // Lets start the countdown at sunrise if countDown === false
   if (gpioPhoto.readSync() === on && countDown === false) {
@@ -254,10 +346,40 @@ const runApplication = async _ => {
   const format = number => (Math.round(number * 100) / 100).toFixed(2)
   const delay = millis => new Promise(resolve => setTimeout(resolve, millis))
 
+// Mock bme280 object
+//const bme280 = {
+//  OVERSAMPLE: {
+//    X1: 1,
+//    X16: 16,
+//    X2: 2,
+//  },
+//  FILTER: {
+//    F16: 16,
+//  },
+//  async open(config) {
+//   console.log("Mock BME280 sensor initialized with config:", config);
+    
+    // Return a mock sensor object
+//    return {
+//      async read() {
+        // Simulate returning constant sensor data
+//        return {
+//          temperature: 22.5,  // Mock temperature in °C
+//          pressure: 1013.25,  // Mock pressure in hPa
+//          humidity: 45.0,     // Mock humidity in %
+//        };
+//      },
+//      async close() {
+//        console.log("Mock BME280 sensor closed");
+//      }
+//    };
+//  }
+//};
+	
   while (true) {
     const sensor = await bme280.open({
       i2cBusNumber: 1,
-      i2cAddress: 0x77,
+      i2cAddress: 0x76,
       humidityOversampling: bme280.OVERSAMPLE.X1,
       pressureOversampling: bme280.OVERSAMPLE.X16,
       temperatureOversampling: bme280.OVERSAMPLE.X2,
@@ -277,7 +399,8 @@ const runApplication = async _ => {
     await delay(2000) // 1000 = 1 second
     await heatController()
     await exhaustController()
-    await doorController()
+    await coopDoorController()
+    await runDoorController()
     await lightController()
     refreshPageData()
   }
@@ -324,17 +447,31 @@ svr.ready().then(() => {
     })
     // #endregion
 
-    // #region Door Control
-    socket.on('doorDelayTime', data => {
-      objConfig._doorDelayTime = data
+    // #region coop Door Control
+    socket.on('coopDoorDelayTime', data => {
+      objConfig._coopDoorDelayTime = data
     })
 
-    socket.on('doorRelay', data => {
-      objConfig._doorRelayTxt = data
+    socket.on('coopDoorRelay', data => {
+      objConfig._coopDoorRelayTxt = data
     })
 
-    socket.on('doorMode', data => {
-      objConfig._doorMode = data
+    socket.on('coopDoorMode', data => {
+      objConfig._coopDoorMode = data
+    })
+    // #endregion
+
+    // #region Run Door Control
+    socket.on('runDoorDelayTime', data => {
+      objConfig._runDoorDelayTime = data
+    })
+
+    socket.on('runDoorRelay', data => {
+      objConfig._runDoorRelayTxt = data
+    })
+
+    socket.on('runDoorMode', data => {
+      objConfig._runDoorMode = data
     })
     // #endregion
 

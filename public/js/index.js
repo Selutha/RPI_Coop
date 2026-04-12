@@ -11,8 +11,10 @@ const dBrdHeatSetPnt = document.getElementById('dBrdHeatSetPnt')
 const dBrdHeatRelayTxt = document.getElementById('dBrdHeatRelayTxt')
 const dBrdExhaustSetPnt = document.getElementById('dBrdExhaustSetPnt')
 const dBrdExhaustRelayTxt = document.getElementById('dBrdExhaustRelayTxt')
-const dBrdDoorDelayTime = document.getElementById('dBrdDoorDelayTime')
-const dBrdDoorRelayTxt = document.getElementById('dBrdDoorRelayTxt')
+const dBrdCoopDoorDelayTime = document.getElementById('dBrdCoopDoorDelayTime')
+const dBrdCoopDoorRelayTxt = document.getElementById('dBrdCoopDoorRelayTxt')
+const dBrdRunDoorDelayTime = document.getElementById('dBrdRunDoorDelayTime')
+const dBrdRunDoorRelayTxt = document.getElementById('dBrdRunDoorRelayTxt')
 const dBrdLightRelayTxt = document.getElementById('dBrdLightRelayTxt')
 const dBrdLightDuration = document.getElementById('dBrdLightDuration')
 const dBrdPhotocellTxt = document.getElementById('dBrdPhotocellTxt')
@@ -33,12 +35,20 @@ const cardExhaustSetPnt = document.getElementById('cardExhaustSetPnt')
 const cardExhaustModeAuto = document.getElementById('cardExhaustModeAuto')
 const cardExhaustModeManual = document.getElementById('cardExhaustModeManual')
 
-// Door Control
-const cardDoorRelayTxt = document.getElementById('cardDoorRelayTxt')
-const cardDoorDelayTime = document.getElementById('cardDoorDelayTime')
-const cardDoorRelay = document.getElementById('cardDoorRelay')
-const cardDoorModeAuto = document.getElementById('cardDoorModeAuto')
-const cardDoorModeManual = document.getElementById('cardDoorModeManual')
+// Coop Door Control
+const cardCoopDoorRelayTxt = document.getElementById('cardCoopDoorRelayTxt')
+const cardCoopDoorDelayTime = document.getElementById('cardCoopDoorDelayTime')
+const cardCoopDoorRelay = document.getElementById('cardCoopDoorRelay')
+const cardCoopDoorModeAuto = document.getElementById('cardCoopDoorModeAuto')
+const cardCoopDoorModeManual = document.getElementById('cardCoopDoorModeManual')
+
+// run Door Control
+const cardRunDoorRelayTxt = document.getElementById('cardRunDoorRelayTxt')
+const cardRunDoorDelayTime = document.getElementById('cardRunDoorDelayTime')
+const cardRunDoorRelay = document.getElementById('cardRunDoorRelay')
+const cardRunDoorModeAuto = document.getElementById('cardRunDoorModeAuto')
+const cardRunDoorModeManual = document.getElementById('cardRunDoorModeManual')
+
 
 // Light Control
 const cardLightRelayTxt = document.getElementById('cardLightRelayTxt')
@@ -57,8 +67,10 @@ socket.on('refreshPageData', (data) => {
   dBrdHeatRelayTxt.innerHTML = data._heatRelayTxt + ' - ' + data._heatMode
   dBrdExhaustSetPnt.innerHTML = data._exhaustSetPnt
   dBrdExhaustRelayTxt.innerHTML = data._exhaustRelayTxt + ' - ' + data._exhaustMode
-  dBrdDoorDelayTime.innerHTML = data._doorDelayTime
-  dBrdDoorRelayTxt.innerHTML = data._doorRelayTxt + ' - ' + data._doorMode
+  dBrdCoopDoorDelayTime.innerHTML = data._coopDoorDelayTime
+  dBrdCoopDoorRelayTxt.innerHTML = data._coopDoorRelayTxt + ' - ' + data._coopDoorMode
+  dBrdRunDoorDelayTime.innerHTML = data._runDoorDelayTime
+  dBrdRunDoorRelayTxt.innerHTML = data._runDoorRelayTxt + ' - ' + data._runDoorMode
   dBrdLightRelayTxt.innerHTML = data._lightRelayTxt + ' - ' + data._lightMode
   switch (data._lightDurationIdx) {
     case 0:
@@ -95,14 +107,22 @@ socket.on('refreshPageData', (data) => {
   cardExhaustSetPnt.innerHTML = data._exhaustSetPnt
   cardExhaustModeAuto.checked = data._exhaustMode === 'Auto'
   cardExhaustModeManual.checked = data._exhaustMode === 'Manual'
-  // Door Card
-  cardDoorRelayTxt.innerHTML = data._doorRelayTxt
-  cardDoorRelay.checked = data._doorRelayTxt === 'OPEN'
-  cardDoorRelay.disabled = data._doorMode === 'Auto'
-  cardDoorDelayTime.value = data._doorDelayTime
-  cardDoorDelayTime.disabled = data._doorMode === 'Manual'
-  cardDoorModeAuto.checked = data._doorMode === 'Auto'
-  cardDoorModeManual.checked = data._doorMode === 'Manual'
+  // Coop Door Card
+  cardCoopDoorRelayTxt.innerHTML = data._coopDoorRelayTxt
+  cardCoopDoorRelay.checked = data._coopDoorRelayTxt === 'OPEN'
+  cardCoopDoorRelay.disabled = data._coopDoorMode === 'Auto'
+  cardCoopDoorDelayTime.value = data._coopDoorDelayTime
+  cardCoopDoorDelayTime.disabled = data._coopDoorMode === 'Manual'
+  cardCoopDoorModeAuto.checked = data._coopDoorMode === 'Auto'
+  cardCoopDoorModeManual.checked = data._coopDoorMode === 'Manual'
+  // run Door Card
+  cardRunDoorRelayTxt.innerHTML = data._runDoorRelayTxt
+  cardRunDoorRelay.checked = data._runDoorRelayTxt === 'OPEN'
+  cardRunDoorRelay.disabled = data._runDoorMode === 'Auto'
+  cardRunDoorDelayTime.value = data._runDoorDelayTime
+  cardRunDoorDelayTime.disabled = data._runDoorMode === 'Manual'
+  cardRunDoorModeAuto.checked = data._runDoorMode === 'Auto'
+  cardRunDoorModeManual.checked = data._runDoorMode === 'Manual'
   // Light Card
   cardLightRelayTxt.innerHTML = data._lightRelayTxt
   cardLightRelay.checked = data._lightRelayTxt === 'ON'
@@ -180,26 +200,50 @@ window.addEventListener('load', () => {
   })
   // #endregion
 
-  // #region Door Control
-  cardDoorDelayTime.addEventListener('change', () => {
-    socket.emit('doorDelayTime', cardDoorDelayTime.value)
+  // #region Coop Door Control
+  cardCoopDoorDelayTime.addEventListener('change', () => {
+    socket.emit('coopDoorDelayTime', cardCoopDoorDelayTime.value)
   })
 
-  cardDoorRelay.addEventListener('change', () => {
+  cardCoopDoorRelay.addEventListener('change', () => {
     let onOff = 'CLOSED'
-    if (cardDoorRelay.checked) { onOff = 'OPEN' }
-    socket.emit('doorRelay', onOff)
+    if (cardCoopDoorRelay.checked) { onOff = 'OPEN' }
+    socket.emit('coopDoorRelay', onOff)
   })
 
-  cardDoorModeAuto.addEventListener('change', () => {
-    if (cardDoorModeAuto.checked) {
-      socket.emit('doorMode', 'Auto')
+  cardCoopDoorModeAuto.addEventListener('change', () => {
+    if (cardCoopDoorModeAuto.checked) {
+      socket.emit('coopDoorMode', 'Auto')
     }
   })
 
-  cardDoorModeManual.addEventListener('change', () => {
-    if (cardDoorModeManual.checked) {
-      socket.emit('doorMode', 'Manual')
+  cardCoopDoorModeManual.addEventListener('change', () => {
+    if (cardCoopDoorModeManual.checked) {
+      socket.emit('coopDoorMode', 'Manual')
+    }
+  })
+  // #endregion
+
+  // #region Run Door Control
+  cardRunDoorDelayTime.addEventListener('change', () => {
+    socket.emit('runDoorDelayTime', cardRunDoorDelayTime.value)
+  })
+
+  cardRunDoorRelay.addEventListener('change', () => {
+    let onOff = 'CLOSED'
+    if (cardRunDoorRelay.checked) { onOff = 'OPEN' }
+    socket.emit('runDoorRelay', onOff)
+  })
+
+  cardRunDoorModeAuto.addEventListener('change', () => {
+    if (cardRunDoorModeAuto.checked) {
+      socket.emit('runDoorMode', 'Auto')
+    }
+  })
+
+  cardRunDoorModeManual.addEventListener('change', () => {
+    if (cardRunDoorModeManual.checked) {
+      socket.emit('runDoorMode', 'Manual')
     }
   })
   // #endregion

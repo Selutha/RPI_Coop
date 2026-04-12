@@ -12,24 +12,73 @@
 
 <body>
     <section class="p-1">
-        <div class="container">
-            <h2 class="pb-2 border-bottom">Chicken Coop Dashboard</h2>
-            <div class="card bg-light p-2 mb-3">
-                <h3>Current conditions...</h3>
-                <div>Server time is&nbsp;<span id="dBrdSvrTime"></span></div>
-                <div>Coop temperature is&nbsp;<span id="dBrdDegF"></span>&nbsp;°F</div>
-                <div>Coop humidity is&nbsp;<span id="dBrdPctRH"></span>&nbsp;%</div>
-                <div>Coop barometric pressure is&nbsp;<span id="dBrdPressure"></span>&nbsp;hPa</div>
-                <div>Heat set point is&nbsp;<span id="dBrdHeatSetPnt"></span>°F</div>
-                <div>Heat is&nbsp;<span id="dBrdHeatRelayTxt"></span></div>
-                <div>Exhaust fan set point is&nbsp;<span id="dBrdExhaustSetPnt"></span>°F</div>
-                <div>Exhaust fan is&nbsp;<span id="dBrdExhaustRelayTxt"></span></div>
-                <div>Open door after&nbsp;<span id="dBrdDoorDelayTime"></span></div>
-                <div>Door is&nbsp;<span id="dBrdDoorRelayTxt"></span></div>
-                <div>Light duration is&nbsp;<span id="dBrdLightDuration"></span></div>
-                <div>Light is&nbsp;<span id="dBrdLightRelayTxt"></span></div>
-                <div>Photocell is&nbsp;<span id="dBrdPhotocellTxt"></span></div>
-            </div>
+	    <div class="container">
+    <h2 class="pb-2 border-bottom">Chicken Coop Dashboard</h2>
+    <div class="card bg-light p-2 mb-3">
+        <h3>Current conditions...</h3>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Server time</div>
+            <div class="col-6 text-right"><span id="dBrdSvrTime"></span></div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Coop temperature</div>
+            <div class="col-6 text-right"><span id="dBrdDegF"></span>&nbsp;°F</div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Coop humidity</div>
+            <div class="col-6 text-right"><span id="dBrdPctRH"></span>&nbsp;%</div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Coop barometric pressure</div>
+            <div class="col-6 text-right"><span id="dBrdPressure"></span>&nbsp;hPa</div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Heat set point</div>
+            <div class="col-6 text-right"><span id="dBrdHeatSetPnt"></span>°F</div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Heat</div>
+            <div class="col-6 text-right"><span id="dBrdHeatRelayTxt"></span></div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Exhaust fan set point</div>
+            <div class="col-6 text-right"><span id="dBrdExhaustSetPnt"></span>°F</div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Exhaust fan</div>
+            <div class="col-6 text-right"><span id="dBrdExhaustRelayTxt"></span></div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Open door after</div>
+            <div class="col-6 text-right"><span id="dBrdCoopDoorDelayTime"></span></div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Coop Door</div>
+            <div class="col-6 text-right"><span id="dBrdCoopDoorRelayTxt"></span></div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Open door after</div>
+            <div class="col-6 text-right"><span id="dBrdRunDoorDelayTime"></span></div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Run Door</div>
+            <div class="col-6 text-right"><span id="dBrdRunDoorRelayTxt"></span></div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Light duration</div>
+            <div class="col-6 text-right"><span id="dBrdLightDuration"></span></div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Light</div>
+            <div class="col-6 text-right"><span id="dBrdLightRelayTxt"></span></div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6 fixed-width">Photocell</div>
+            <div class="col-6 text-right"><span id="dBrdPhotocellTxt"></span></div>
+        </div>
+    </div>
+</div>
+
             <div class="accordion" id="accordionExample">
                 <!-- Heat -->
                 <div class="accordion-item">
@@ -101,46 +150,77 @@
                         </div>
                     </div>
                 </div>
-                <!-- Door -->
+                <!-- Coop Door -->
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="headingThree">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                             data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                            Door Control
+                            Coop Door Control
                         </button>
                     </h2>
                     <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree"
                         data-bs-parent="#accordionExample">
                         <div class="accordion-body">
-                            <div>Door is&nbsp;<span id="cardDoorRelayTxt"></span></div>
-                            <label for="cardDoorDelayTime" class="form-label">Open door after...</label>
-                            <input type="time" class="form-control" id="cardDoorDelayTime">
+                            <div>Coop Door is&nbsp;<span id="cardCoopDoorRelayTxt"></span></div>
+                            <label for="cardCoopDoorDelayTime" class="form-label">Open door after...</label>
+                            <input type="time" class="form-control" id="cardCoopDoorDelayTime">
                             <div class="form-check-inline">
-                                <input class="form-check-input" type="radio" name="flexRadioDoor" id="cardDoorModeAuto">
-                                <label class="form-check-label" for="cardDoorModeAuto">Auto</label>
+                                <input class="form-check-input" type="radio" name="flexRadioCoopDoor" id="cardCoopDoorModeAuto">
+                                <label class="form-check-label" for="cardCoopDoorModeAuto">Auto</label>
                             </div>
                             <div class="form-check-inline">
-                                <input class="form-check-input" type="radio" name="flexRadioDoor"
-                                    id="cardDoorModeManual">
-                                <label class="form-check-label" for="cardDoorModeManual">Manual</label>
+                                <input class="form-check-input" type="radio" name="flexRadioCoopDoor"
+                                    id="cardCoopDoorModeManual">
+                                <label class="form-check-label" for="cardCoopDoorModeManual">Manual</label>
                             </div>
                             <div class="form-check form-switch">
                                 <input class="form-check-input button-override" type="checkbox" role="switch"
-                                    id="cardDoorRelay">
-                                <label class="form-check-label label-override" for="cardDoorRelay">Override</label>
+                                    id="cardCoopDoorRelay">
+                                <label class="form-check-label label-override" for="cardCoopDoorRelay">Override</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Run Door -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingFour">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                            Run Door Control
+                        </button>
+                    </h2>
+                    <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour"
+                        data-bs-parent="#accordionExample">
+                        <div class="accordion-body">
+                            <div>Run Door is&nbsp;<span id="cardRunDoorRelayTxt"></span></div>
+                            <label for="cardRunDoorDelayTime" class="form-label">Open door after...</label>
+                            <input type="time" class="form-control" id="cardRunDoorDelayTime">
+                            <div class="form-check-inline">
+                                <input class="form-check-input" type="radio" name="flexRadioRunDoor" id="cardRunDoorModeAuto">
+                                <label class="form-check-label" for="cardRunDoorModeAuto">Auto</label>
+                            </div>
+                            <div class="form-check-inline">
+                                <input class="form-check-input" type="radio" name="flexRadioRunDoor"
+                                    id="cardRunDoorModeManual">
+                                <label class="form-check-label" for="cardRunDoorModeManual">Manual</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input button-override" type="checkbox" role="switch"
+                                    id="cardRunDoorRelay">
+                                <label class="form-check-label label-override" for="cardRunDoorRelay">Override</label>
                             </div>
                         </div>
                     </div>
                 </div>
                 <!-- Lighting -->
                 <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingFour">
+                    <h2 class="accordion-header" id="headingFive">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                            data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
                             Supplemental Lighting
                         </button>
                     </h2>
-                    <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour"
+                    <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive"
                         data-bs-parent="#accordionExample">
                         <div class="accordion-body">
                             <div>Light is&nbsp;<span id="cardLightRelayTxt"></span></div>
