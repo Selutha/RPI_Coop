@@ -111,10 +111,10 @@ function getPhotocellEndTime () {
       hours = msPhotocellStartTime + (14 * 3600000)
       break
     case 2:
-      hours = msPhotocellStartTime + (14 * 3600000)
+      hours = msPhotocellStartTime + (15 * 3600000)
       break
     case 3:
-      hours = msPhotocellStartTime + (14 * 3600000)
+      hours = msPhotocellStartTime + (16 * 3600000)
       break
     default:
       hours = 0
@@ -307,9 +307,7 @@ async function lightController () {
   if (gpioPhoto.readSync() === on && countDown === false) {
     countDown = true // Let's enable the flag
     // Lets store the current time
-    const curDate = new Date()
-    const curTime = curDate.getTime()
-    msPhotocellStartTime = curTime // milliseconds
+    msPhotocellStartTime = Date.now() // milliseconds
   }
 
   // _lightDurationIdx is 'DISABLED' we don't want any suplimental lighting.
@@ -317,7 +315,7 @@ async function lightController () {
 
   // Only run if mode = auto
   if (objConfig._lightMode === 'Auto' && countDown === true) {
-    if (curTime < getPhotocellEndTime()) {
+    if (Date.now() < getPhotocellEndTime()) {
       if (gpioLight.readSync() === off) {
         gpioLight.writeSync(on) // Turn relay on
       }
@@ -326,9 +324,9 @@ async function lightController () {
       if (gpioLight.readSync() === on) {
         gpioLight.writeSync(off) // Turn relay off
       }
+      countDown = false
+      objConfig._lightRelayTxt = 'OFF'
     }
-    countDown = false
-    objConfig._lightRelayTxt = 'OFF'
   } else {
     if (objConfig._lightRelayTxt === 'ON') {
       if (gpioLight.readSync() === off) {
@@ -377,24 +375,26 @@ const runApplication = async _ => {
 //};
 	
   while (true) {
-    const sensor = await bme280.open({
-      i2cBusNumber: 1,
-      i2cAddress: 0x76,
-      humidityOversampling: bme280.OVERSAMPLE.X1,
-      pressureOversampling: bme280.OVERSAMPLE.X16,
-      temperatureOversampling: bme280.OVERSAMPLE.X2,
-      filterCoefficient: bme280.FILTER.F16
-    })
+    try {
+      const sensor = await bme280.open({
+        i2cBusNumber: 1,
+        i2cAddress: 0x76,
+        humidityOversampling: bme280.OVERSAMPLE.X1,
+        pressureOversampling: bme280.OVERSAMPLE.X16,
+        temperatureOversampling: bme280.OVERSAMPLE.X2,
+        filterCoefficient: bme280.FILTER.F16
+      })
 
-    const reading = await sensor.read()
-    objConfig._degC = format(reading.temperature)
-    objConfig._degF = format((objConfig._degC * 1.8) + 32)
-    objConfig._pctRH = format(reading.humidity)
-    objConfig._inHg = format(reading.pressure * 0.02953)
+      const reading = await sensor.read()
+      objConfig._degC = format(reading.temperature)
+      objConfig._degF = format((objConfig._degC * 1.8) + 32)
+      objConfig._pctRH = format(reading.humidity)
+      objConfig._inHg = format(reading.pressure * 0.02953)
 
-    // console.log(objConfig._degC + ' degC ' + objConfig._degF + ' degF ' + objConfig._pctRH + '% RH ' + objConfig._inHg + ' inHg')
-
-    await sensor.close()
+      await sensor.close()
+    } catch (err) {
+      console.log('BME280 sensor read failed, using last known values:', err.message)
+    }
 
     await delay(2000) // 1000 = 1 second
     await heatController()
